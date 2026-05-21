@@ -2,14 +2,13 @@ import os
 from PIL import Image
 import numpy as np
 import torch
-from torchvision import transforms as T
 import matplotlib.pyplot as plt
 
 from unidepth.models import UniDepthV1
 
 
 
-TESTING = True  # Set to True to only process one image for testing
+TESTING = False  # Set to True to only process one image for testing
 
 
 
@@ -39,7 +38,7 @@ def load_data(folder_path):
         img = Image.open(img_path).convert("RGB")
         img_tensor = torch.from_numpy(np.array(img)).permute(2, 0, 1) # C, H, W
         images.append(img_tensor)
-        image_names.append(filename)
+        image_names.append(filename.split('.')[0])
 
     print(f"Loaded {len(images)} images from {folder_path}")
     return images, image_names
@@ -77,8 +76,8 @@ if __name__ == "__main__":
         p_min, p_max = np.percentile(depth_map, (2, 98))  # Clip outliers
         pred_normalized = np.clip((depth_map - p_min) / (p_max - p_min + 1e-8), 0, 1)
         # Apply colormap (magma)
-        #pred_normalized = 255 - (pred_normalized*255).astype(np.uint8)  # Invert for better visualization
-        depth_colored = plt.cm.viridis(pred_normalized)[:, :, :3]
+        pred_normalized = 255 - (pred_normalized*255).astype(np.uint8)  # Invert for better visualization
+        depth_colored = plt.cm.magma(pred_normalized)[:, :, :3]
         depth_colored = (depth_colored * 255).astype(np.uint8)
         output_path = os.path.join('fileoutput/task1', f'{image_names[i]}.png')
         Image.fromarray(depth_colored).save(output_path)
