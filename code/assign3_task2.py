@@ -34,8 +34,9 @@ def load_ground_truth(folder_path):
             gt_array = np.array(gt)
             ground_truths_raw.append(gt_array)
             gt_names.append(filename)
-            # Convert to meters: divide by 256, but keep 0 as invalid
-            gt_meters = np.where(gt_array != 0, gt_array / 256.0, 0)
+
+            # Convert to meters
+            gt_meters = gt_array.astype(np.float32) / 256.0
             ground_truths_meters.append(gt_meters)
 
     print(f"Loaded {len(ground_truths_raw)} ground truths from {folder_path}")
@@ -46,22 +47,28 @@ def load_ground_truth(folder_path):
 def calc_rms_diff(pred, gt):
     # Create a color image to visualize differences in meters
     diff_image = np.zeros((*pred.shape, 3), dtype=np.uint8)
-
-    # Cutoff depth values exceeding 120 meters
-    pred_clipped = np.clip(pred, 0, 120)
+    
+    if pred.shape != gt.shape:
+        print(f"Warning: Prediction shape {pred.shape} does not match GT shape {gt.shape}.")
 
     # Create valid pixel mask: GT != 0 (valid in GT) and pred is valid
-    valid_mask = (gt != 0)
+    valid_mask = (gt != 0) & (pred < 120) & (pred > 0) 
 
     # Calculate absolute difference in meters
-    abs_diff = np.abs(pred_clipped - gt)
+    pred_masked = np.where(valid_mask, pred, 0)
+    gt_masked = np.where(valid_mask, gt, 0)
+    abs_diff = np.abs(pred_masked - gt_masked)
 
+    print(f"Valid pixels: {valid_mask.sum()} / {valid_mask.size}")
+    print(f"Mean absolute difference (valid pixels): {abs_diff.mean():.4f} meters")
+    print(f"Max absolute difference (valid pixels): {abs_diff.max():.4f} meters")
+    print(f"Min absolute difference (valid pixels): {abs_diff[valid_mask].min():.4f} meters")
 
     rmse = np.sqrt(np.mean(abs_diff[valid_mask] ** 2))
 
 
-    # Normalize difference to 0-255 range and apply colormap
-    diff_normalized = np.clip(abs_diff / 10.0, 0, 1)
+    # Normalize difference to 0-255 range form 0-80m and apply colormap
+    diff_normalized = np.clip(abs_diff / 80.0, 0, 1)
     colormap = plt.cm.viridis(diff_normalized)
     diff_image = (colormap[..., :3] * 255).astype(np.uint8)
     diff_image[~valid_mask] = 0  # Set invalid pixels to black
