@@ -46,8 +46,7 @@ def calc_rms_diff(pred, gt):
         print(f"Warning: Prediction shape {pred.shape} does not match GT shape {gt.shape}.")
 
     # Create valid pixel mask: GT != 0 (valid in GT) and pred is valid
-    valid_mask = (gt != 0) & (pred < 120) & (pred > 0) 
-
+    valid_mask = (gt != 0) & (pred < 120)
     # Calculate absolute difference in meters
     pred_masked = np.where(valid_mask, pred, 0)
     gt_masked = np.where(valid_mask, gt, 0)
