@@ -1,0 +1,74 @@
+Loaded 10 predictions from fileoutput/task1
+Predictions loaded
+Loaded 10 ground truths from data_ass3/Task1_2/groundtruth
+Ground truths loaded
+Processing prediction 1/10...
+Valid pixels: 84923 / 428032
+Mean absolute difference (valid pixels): 0.1133 meters
+Max absolute difference (valid pixels): 31.4594 meters
+Min absolute difference (valid pixels): 0.0000 meters
+RMSE for 2011_10_03_drive_0047_sync_image_0000000005_image_03_raw.npy vs 2011_10_03_drive_0047_sync_groundtruth_depth_0000000005_image_03.png: 
+ 1.4630 meters
+Processing prediction 2/10...
+Valid pixels: 71091 / 428032
+Mean absolute difference (valid pixels): 0.1358 meters
+Max absolute difference (valid pixels): 29.9862 meters
+Min absolute difference (valid pixels): 0.0000 meters
+RMSE for 2011_10_03_drive_0047_sync_image_0000000086_image_03_raw.npy vs 2011_10_03_drive_0047_sync_groundtruth_depth_0000000086_image_03.png: 
+ 1.8534 meters
+Processing prediction 3/10...
+Valid pixels: 89166 / 428032
+Mean absolute difference (valid pixels): 0.1769 meters
+Max absolute difference (valid pixels): 35.0150 meters
+Min absolute difference (valid pixels): 0.0000 meters
+RMSE for 2011_10_03_drive_0047_sync_image_0000000131_image_02_raw.npy vs 2011_10_03_drive_0047_sync_groundtruth_depth_0000000131_image_02.png: 
+ 1.9687 meters
+Processing prediction 4/10...
+Valid pixels: 73468 / 428032
+Mean absolute difference (valid pixels): 0.0954 meters
+Max absolute difference (valid pixels): 31.0224 meters
+Min absolute difference (valid pixels): 0.0000 meters
+RMSE for 2011_10_03_drive_0047_sync_image_0000000209_image_02_raw.npy vs 2011_10_03_drive_0047_sync_groundtruth_depth_0000000209_image_02.png: 
+ 1.7197 meters
+Processing prediction 5/10...
+Valid pixels: 89757 / 428032
+Mean absolute difference (valid pixels): 0.1924 meters
+Max absolute difference (valid pixels): 27.1807 meters
+Min absolute difference (valid pixels): 0.0000 meters
+RMSE for 2011_10_03_drive_0047_sync_image_0000000245_image_02_raw.npy vs 2011_10_03_drive_0047_sync_groundtruth_depth_0000000245_image_02.png: 
+ 1.6542 meters
+Processing prediction 6/10...
+Valid pixels: 78669 / 428032
+Mean absolute difference (valid pixels): 0.1530 meters
+Max absolute difference (valid pixels): 24.6047 meters
+Min absolute difference (valid pixels): 0.0000 meters
+RMSE for 2011_10_03_drive_0047_sync_image_0000000296_image_03_raw.npy vs 2011_10_03_drive_0047_sync_groundtruth_depth_0000000296_image_03.png: 
+ 2.2826 meters
+Processing prediction 7/10...
+Valid pixels: 72026 / 428032
+Mean absolute difference (valid pixels): 0.0651 meters
+Max absolute difference (valid pixels): 31.2370 meters
+Min absolute difference (valid pixels): 0.0000 meters
+RMSE for 2011_10_03_drive_0047_sync_image_0000000326_image_03_raw.npy vs 2011_10_03_drive_0047_sync_groundtruth_depth_0000000326_image_03.png: 
+ 0.9856 meters
+Processing prediction 8/10...
+Valid pixels: 61582 / 428032
+Mean absolute difference (valid pixels): 0.1420 meters
+Max absolute difference (valid pixels): 54.4394 meters
+Min absolute difference (valid pixels): 0.0000 meters
+RMSE for 2011_10_03_drive_0047_sync_image_0000000395_image_02_raw.npy vs 2011_10_03_drive_0047_sync_groundtruth_depth_0000000395_image_02.png: 
+ 2.5509 meters
+Processing prediction 9/10...
+Valid pixels: 90029 / 428032
+Mean absolute difference (valid pixels): 0.1850 meters
+Max absolute difference (valid pixels): 37.0929 meters
+Min absolute difference (valid pixels): 0.0000 meters
+RMSE for 2011_10_03_drive_0047_sync_image_0000000521_image_02_raw.npy vs 2011_10_03_drive_0047_sync_groundtruth_depth_0000000521_image_02.png: 
+ 1.8066 meters
+Processing prediction 10/10...
+Valid pixels: 91570 / 428032
+Mean absolute difference (valid pixels): 0.2310 meters
+Max absolute difference (valid pixels): 25.7367 meters
+Min absolute difference (valid pixels): 0.0000 meters
+RMSE for 2011_10_03_drive_0047_sync_image_0000000734_image_03_raw.npy vs 2011_10_03_drive_0047_sync_groundtruth_depth_0000000734_image_03.png: 
+ 2.1076 meters
