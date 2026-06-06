@@ -9,7 +9,6 @@ import re
 from unidepth.models import UniDepthV1
 
 #------------------------------------------------------------------
-
 RUN_UNIMATCH = False
 RUN_UNIDEPTH = False
 
@@ -18,8 +17,6 @@ FOCAL_LENGTH = 721 #px
 BASE_LENGTH = 0.54 #m
 
 #------------------------------------------------------------------
-
-
 def disparity_to_depth(disparity_image, focal_length=FOCAL_LENGTH, base_length=BASE_LENGTH):
     depth_map = np.zeros_like(disparity_image, dtype=np.float32)
 
@@ -34,7 +31,6 @@ def disparity_to_depth(disparity_image, focal_length=FOCAL_LENGTH, base_length=B
     return depth_map
 
 #------------------------------------------------------------------
-
 def run_unimatch():
     cmd = [
         "python3", "unimatch/main_stereo.py",
@@ -64,8 +60,6 @@ def run_unimatch():
         print("Unimatch completed successfully")
 
     return result
-
-
 
 
 def _load_pfm(file):
@@ -110,11 +104,8 @@ def load_unimatch_results(folder_path):
     print(f"Loaded {len(depth_maps)} disparity maps from {folder_path}")
     return depth_maps, disparity_names
 
-    
-
 
 #------------------------------------------------------------------
-
 def load_data(folder_path):
     images = []
     image_names = []
@@ -187,7 +178,6 @@ def load_unidepth_results(folder_path):
 
 
 #------------------------------------------------------------------
-
 def load_ground_truth(folder_path):
     ground_truths_raw = []
     ground_truths_meters = []
@@ -215,11 +205,6 @@ def load_ground_truth(folder_path):
 
 
 #------------------------------------------------------------------
-
-
-
-
-
 def calc_rms_diff(pred, gt):
     # Create a color image to visualize differences in meters
     diff_image = np.zeros((*pred.shape, 3), dtype=np.uint8)
@@ -228,7 +213,7 @@ def calc_rms_diff(pred, gt):
         print(f"Warning: Prediction shape {pred.shape} does not match GT shape {gt.shape}.")
 
     # Create valid pixel mask: GT != 0 (valid in GT) and pred is valid
-    valid_mask = (gt != 0) & (pred < 120) & (pred > 0) 
+    valid_mask = (gt != 0) & (pred < 120)
 
     # Calculate absolute difference in meters
     pred_masked = np.where(valid_mask, pred, 0)
@@ -242,7 +227,6 @@ def calc_rms_diff(pred, gt):
 
     rmse = np.sqrt(np.mean(abs_diff[valid_mask] ** 2))
 
-
     # Normalize difference to 0-255 range form 0-80m and apply colormap
     diff_normalized = np.clip(abs_diff / 80.0, 0, 1)
     colormap = plt.cm.viridis(diff_normalized)
@@ -252,16 +236,7 @@ def calc_rms_diff(pred, gt):
     return rmse, diff_image
 
 
-
-
-
-
-
-
-
-
 #------------------------------------------------------------------
-
 if __name__ == "__main__":
     if RUN_UNIMATCH:
         print("Running Unimatch...")
