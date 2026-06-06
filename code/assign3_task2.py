@@ -1,14 +1,9 @@
 import os
 from PIL import Image
-from matplotlib import image
 import numpy as np
 import matplotlib.pyplot as plt
 
 # ------------------------------------------------------------------
-
-
-
-
 def load_predictions(folder_path):
     predictions = []
     pred_names = []
@@ -30,7 +25,7 @@ def load_ground_truth(folder_path):
     for filename in sorted(os.listdir(folder_path)):
         gt_path = os.path.join(folder_path, filename)
         if gt_path.endswith('.png'):
-            gt = Image.open(gt_path).convert("L")  # Load as grayscale
+            gt = Image.open(gt_path)
             gt_array = np.array(gt)
             ground_truths_raw.append(gt_array)
             gt_names.append(filename)
@@ -41,7 +36,6 @@ def load_ground_truth(folder_path):
 
     print(f"Loaded {len(ground_truths_raw)} ground truths from {folder_path}")
     return ground_truths_meters, gt_names
-
 
 
 def calc_rms_diff(pred, gt):
@@ -66,9 +60,8 @@ def calc_rms_diff(pred, gt):
 
     rmse = np.sqrt(np.mean(abs_diff[valid_mask] ** 2))
 
-
-    # Normalize difference to 0-255 range form 0-80m and apply colormap
-    diff_normalized = np.clip(abs_diff / 80.0, 0, 1)
+    # Normalize difference to 0-255 range form 0-60m and apply colormap
+    diff_normalized = np.clip(abs_diff / 60, 0, 1)
     colormap = plt.cm.viridis(diff_normalized)
     diff_image = (colormap[..., :3] * 255).astype(np.uint8)
     diff_image[~valid_mask] = 0  # Set invalid pixels to black
@@ -76,9 +69,7 @@ def calc_rms_diff(pred, gt):
     return rmse, diff_image
 
 
-
 # ------------------------------------------------------------------
-
 if __name__ == "__main__":
     predictions, pred_names = load_predictions('fileoutput/task1')
     print("Predictions loaded")
@@ -91,7 +82,6 @@ if __name__ == "__main__":
 
         rmse, diff_image = calc_rms_diff(pred, gt)
         print(f"RMSE for {pred_name} vs {gt_name}: \n {rmse:.4f} meters")
-
 
         # Save difference image (testing only)
         os.makedirs('fileoutput/debug', exist_ok=True)

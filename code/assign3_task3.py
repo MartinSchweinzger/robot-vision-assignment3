@@ -195,13 +195,13 @@ def load_ground_truth(folder_path):
     for filename in sorted(os.listdir(folder_path)):
         gt_path = os.path.join(folder_path, filename)
         if gt_path.endswith('.png'):
-            gt = Image.open(gt_path).convert("L")  # Load as grayscale
+            gt = Image.open(gt_path)  # Load as grayscale
             gt_array = np.array(gt)
             ground_truths_raw.append(gt_array)
             gt_names.append(filename)
 
             # Convert to meters
-            gt_meters = gt_array.astype(np.float32) #/ 256.0
+            gt_meters = gt_array.astype(np.float32) / 256.0
             ground_truths_meters.append(gt_meters)
 
     # Convert disparity to depth maps
