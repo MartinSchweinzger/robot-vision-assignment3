@@ -3,6 +3,9 @@ from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
 
+
+DIFF_IMG_MAX_ERROR = 40  
+
 # ------------------------------------------------------------------
 def load_predictions(folder_path):
     predictions = []
@@ -39,7 +42,6 @@ def load_ground_truth(folder_path):
 
 
 def calc_rms_diff(pred, gt):
-    # Create a color image to visualize differences in meters
     diff_image = np.zeros((*pred.shape, 3), dtype=np.uint8)
     
     if pred.shape != gt.shape:
@@ -59,11 +61,11 @@ def calc_rms_diff(pred, gt):
 
     rmse = np.sqrt(np.mean(abs_diff[valid_mask] ** 2))
 
-    # Normalize difference to 0-255 range form 0-60m and apply colormap
-    diff_normalized = np.clip(abs_diff / 60, 0, 1)
+    # Normalize difference and apply colormap
+    diff_normalized = np.clip(abs_diff / DIFF_IMG_MAX_ERROR, 0, 1)
     colormap = plt.cm.viridis(diff_normalized)
     diff_image = (colormap[..., :3] * 255).astype(np.uint8)
-    diff_image[~valid_mask] = 0  # Set invalid pixels to black
+    diff_image[~valid_mask] = 0  
 
     return rmse, diff_image
 

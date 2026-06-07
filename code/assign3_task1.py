@@ -21,7 +21,7 @@ def load_data(folder_path):
     for filename in sorted(os.listdir(folder_path)):
         img_path = os.path.join(folder_path, filename)
         img = Image.open(img_path).convert("RGB")
-        img_tensor = torch.from_numpy(np.array(img)).permute(2, 0, 1) # C, H, W
+        img_tensor = torch.from_numpy(np.array(img)).permute(2, 0, 1)
         images.append(img_tensor)
         image_names.append(filename.split('.')[0])
 
@@ -50,8 +50,6 @@ if __name__ == "__main__":
         raw_output_path = os.path.join('fileoutput/task1', f'{image_names[i]}_raw.npy')
         np.save(raw_output_path, depth_map)
         
-        # Creating colormap 
-        # Normalize to 0-1 range
         # Normalize depth map with percentile clipping for better visibility
         p_min, p_max = np.percentile(depth_map, (2, 98))  # Clip outliers
         pred_normalized = np.clip((depth_map - p_min) / (p_max - p_min), 0, 1)

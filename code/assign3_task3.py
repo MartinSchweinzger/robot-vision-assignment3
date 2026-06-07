@@ -5,7 +5,6 @@ import numpy as np
 import torch
 import matplotlib.pyplot as plt
 import re
-
 from unidepth.models import UniDepthV1
 
 #------------------------------------------------------------------
@@ -15,6 +14,10 @@ RUN_UNIDEPTH = False
 # From calibration file
 FOCAL_LENGTH = 721 #px
 BASE_LENGTH = 0.54 #m
+
+DIFF_IMG_MAX_ERROR = 40
+
+
 
 #------------------------------------------------------------------
 def disparity_to_depth(disparity_image, focal_length=FOCAL_LENGTH, base_length=BASE_LENGTH):
@@ -29,6 +32,9 @@ def disparity_to_depth(disparity_image, focal_length=FOCAL_LENGTH, base_length=B
                 depth_map[i, j] = 0  # indicate invalid depth
 
     return depth_map
+
+
+
 
 #------------------------------------------------------------------
 def run_unimatch():
@@ -63,24 +69,33 @@ def run_unimatch():
 
 
 def _load_pfm(file):
-    header = file.readline().decode('utf-8').rstrip()
+    header = file.readline().decode('ascii').rstrip()
     if header == 'PF':
         color = True
     elif header == 'Pf':
         color = False
     else:
         raise ValueError('Not a PFM file.')
-    dim_match = re.match(r'^(\d+)\s(\d+)\s$', file.readline().decode('utf-8'))
-    if dim_match:
-        width, height = map(int, dim_match.groups())
-    else:
-        raise ValueError('Malformed PFM header.')
+
+    dims = file.readline().decode('ascii').rstrip()
+    while dims.startswith('#'):
+        dims = file.readline().decode('ascii').rstrip()
+        
+    width, height = map(int, dims.split())
     scale = float(file.readline().rstrip())
+
     endian = '<' if scale < 0 else '>'
     scale = abs(scale)
+
     data = np.fromfile(file, endian + 'f')
-    shape = (height, width, 3 if color else 1)
-    return np.reshape(data, shape)[:, :, 0]
+    shape = (height, width, 3) if color else (height, width)
+    data = data.reshape(shape)
+    data = np.flipud(data)  # PFM files are stored in bottom to top
+
+    return data
+    
+
+
 
 def load_unimatch_results(folder_path):
     disparity_maps = []
@@ -89,7 +104,6 @@ def load_unimatch_results(folder_path):
     for filename in sorted(os.listdir(folder_path)):
         if filename.endswith('.pfm'):
             file_path = os.path.join(folder_path, filename)
-            # Load PFM file
             with open(file_path, 'rb') as f:
                 disparity = _load_pfm(f)
             disparity_maps.append(disparity)
@@ -113,7 +127,7 @@ def load_data(folder_path):
     for filename in sorted(os.listdir(folder_path)):
         img_path = os.path.join(folder_path, filename)
         img = Image.open(img_path).convert("RGB")
-        img_tensor = torch.from_numpy(np.array(img)).permute(2, 0, 1) # C, H, W
+        img_tensor = torch.from_numpy(np.array(img)).permute(2, 0, 1)
         images.append(img_tensor)
         image_names.append(filename.split('.')[0])
 
@@ -137,18 +151,14 @@ def run_unidepth():
     depth_maps = []
     os.makedirs('fileoutput/task3/disparity_unidepth', exist_ok=True)
     for i, pred in enumerate(predictions):
-        # Extract depth map from prediction dictionary
         depth_map = pred['depth'].squeeze().cpu().numpy()
         depth_maps.append(depth_map)
         xyz = pred['points'].squeeze().cpu().numpy()
-        #intrinsics = pred['intrinsics'].squeeze().cpu().numpy()
         
-        # Save raw depth data as numpy file
         raw_output_path = os.path.join('fileoutput/task3/disparity_unidepth', f'{image_names[i]}_raw.npy')
         np.save(raw_output_path, depth_map)
         
-        # Normalize to 0-255 range
-        # Normalize to 0-1 range
+
         # Normalize depth map with percentile clipping for better visibility
         p_min, p_max = np.percentile(depth_map, (2, 98))  # Clip outliers
         pred_normalized = np.clip((depth_map - p_min) / (p_max - p_min + 1e-8), 0, 1)
@@ -160,7 +170,6 @@ def run_unidepth():
         Image.fromarray(depth_colored).save(output_path)
 
     return depth_maps, image_names
-
 
 def load_unidepth_results(folder_path):
     depth_maps = []
@@ -204,6 +213,7 @@ def load_ground_truth(folder_path):
     return depth_maps, gt_names
 
 
+
 #------------------------------------------------------------------
 def calc_rms_diff(pred, gt):
     # Create a color image to visualize differences in meters
@@ -227,13 +237,15 @@ def calc_rms_diff(pred, gt):
 
     rmse = np.sqrt(np.mean(abs_diff[valid_mask] ** 2))
 
-    # Normalize difference to 0-255 range form 0-80m and apply colormap
-    diff_normalized = np.clip(abs_diff / 80.0, 0, 1)
+    # Normalize difference and apply colormap
+    diff_normalized = np.clip(abs_diff / DIFF_IMG_MAX_ERROR, 0, 1)
     colormap = plt.cm.viridis(diff_normalized)
     diff_image = (colormap[..., :3] * 255).astype(np.uint8)
-    diff_image[~valid_mask] = 0  # Set invalid pixels to black
+    diff_image[~valid_mask] = 0  
 
     return rmse, diff_image
+
+
 
 
 #------------------------------------------------------------------
@@ -279,14 +291,14 @@ if __name__ == "__main__":
     print()
     print("Calculating RMSE and difference images...")
     for i, (pred_unimatch, pred_unidepth, gt) in enumerate(zip(unimatch_results, unidepth_results, ground_truth)):
-        print(f"Processing result {i+1}/{len(unimatch_results)}...")
+        print(f"\nProcessing result {i+1}/{len(unimatch_results)}...")
 
         rmse_unimatch, diff_image_unimatch = calc_rms_diff(pred_unimatch, gt)
         rmse_unidepth, diff_image_unidepth = calc_rms_diff(pred_unidepth, gt)
 
         # Save difference images
-        diff_output_path_unimatch = os.path.join('fileoutput/task3/diff_images', f'{unimatch_names[i]}_diff.png')
-        diff_output_path_unidepth = os.path.join('fileoutput/task3/diff_images', f'{unidepth_names[i]}_diff.png')
+        diff_output_path_unimatch = os.path.join('fileoutput/task3/diff_images', f'{unimatch_names[i].replace("_disp", "")}_unimatch_diff.png')
+        diff_output_path_unidepth = os.path.join('fileoutput/task3/diff_images', f'{unidepth_names[i].replace("_raw", "")}_unidepth_diff.png')
         os.makedirs('fileoutput/task3/diff_images', exist_ok=True)
         Image.fromarray(diff_image_unimatch).save(diff_output_path_unimatch)
         Image.fromarray(diff_image_unidepth).save(diff_output_path_unidepth)
