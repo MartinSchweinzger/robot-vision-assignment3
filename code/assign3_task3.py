@@ -1,3 +1,4 @@
+import io
 import subprocess
 import os
 from PIL import Image
@@ -80,7 +81,7 @@ def _load_pfm(file):
     dims = file.readline().decode('ascii').rstrip()
     while dims.startswith('#'):
         dims = file.readline().decode('ascii').rstrip()
-        
+
     width, height = map(int, dims.split())
     scale = float(file.readline().rstrip())
 
@@ -239,11 +240,30 @@ def calc_rms_diff(pred, gt):
 
     # Normalize difference and apply colormap
     diff_normalized = np.clip(abs_diff / DIFF_IMG_MAX_ERROR, 0, 1)
-    colormap = plt.cm.viridis(diff_normalized)
-    diff_image = (colormap[..., :3] * 255).astype(np.uint8)
-    diff_image[~valid_mask] = 0  
+    diff_grayscale = (diff_normalized * 255).astype(np.uint8)
+    diff_image = np.stack([diff_grayscale, diff_grayscale, diff_grayscale], axis=-1)
+    diff_image[~valid_mask] = 0
 
-    return rmse, diff_image
+
+
+    # Create histogram of errors
+    errors = abs_diff[valid_mask]
+    bins = np.arange(0, 10.1, 0.1)  # 10 cm bins from 0 to 10 m
+    plt.figure(figsize=(10, 6))
+    plt.hist(errors, bins=bins, edgecolor='black', alpha=0.7)
+    plt.xlabel('Absolute Depth Error [m]')
+    plt.ylabel('Frequency')
+    plt.title('Error Distribution')
+    plt.grid(True, alpha=0.3)
+    plt.xlim(0, 10)
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png')
+    buf.seek(0)
+    hist_image = np.array(Image.open(buf))
+    plt.close()
+
+
+    return rmse, diff_image, hist_image
 
 
 
@@ -293,8 +313,8 @@ if __name__ == "__main__":
     for i, (pred_unimatch, pred_unidepth, gt) in enumerate(zip(unimatch_results, unidepth_results, ground_truth)):
         print(f"\nProcessing result {i+1}/{len(unimatch_results)}...")
 
-        rmse_unimatch, diff_image_unimatch = calc_rms_diff(pred_unimatch, gt)
-        rmse_unidepth, diff_image_unidepth = calc_rms_diff(pred_unidepth, gt)
+        rmse_unimatch, diff_image_unimatch, hist_image_unimatch = calc_rms_diff(pred_unimatch, gt)
+        rmse_unidepth, diff_image_unidepth, hist_image_unidepth = calc_rms_diff(pred_unidepth, gt)
 
         # Save difference images
         diff_output_path_unimatch = os.path.join('fileoutput/task3/diff_images', f'{unimatch_names[i].replace("_disp", "")}_unimatch_diff.png')
@@ -302,6 +322,13 @@ if __name__ == "__main__":
         os.makedirs('fileoutput/task3/diff_images', exist_ok=True)
         Image.fromarray(diff_image_unimatch).save(diff_output_path_unimatch)
         Image.fromarray(diff_image_unidepth).save(diff_output_path_unidepth)
+
+        # Save histogram images
+        hist_output_path_unimatch = os.path.join('fileoutput/task3/histogram_images', f'{unimatch_names[i].replace("_disp", "")}_unimatch_hist.png')
+        hist_output_path_unidepth = os.path.join('fileoutput/task3/histogram_images', f'{unidepth_names[i].replace("_raw", "")}_unidepth_hist.png')
+        os.makedirs('fileoutput/task3/histogram_images', exist_ok=True)
+        Image.fromarray(hist_image_unimatch).save(hist_output_path_unimatch)
+        Image.fromarray(hist_image_unidepth).save(hist_output_path_unidepth)
 
         print(f"Unimatch RMSE: {rmse_unimatch:.4f} meters")
         print(f"UniDepth RMSE: {rmse_unidepth:.4f} meters")
